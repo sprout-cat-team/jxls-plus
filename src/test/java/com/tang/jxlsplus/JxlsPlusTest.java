@@ -10,6 +10,7 @@ import java.util.*;
 
 /**
  * jxls plus 测试用例（用例中的输出路径是针对 win 的，如果有其他系统请自行修改）
+ * <br> TODO 还需要添加原始指令的测试用例
  *
  * @author tzg
  */
@@ -73,11 +74,11 @@ public class JxlsPlusTest {
                     Employee.builder()
                             .empId(UUID.randomUUID().toString())
                             .name("Employee " + (i + 1))
-                            .age(18)
+                            .age(18 + i % 2)
                             .mobile("15013459999")
                             .email("tang_guo_" + i + "@163.com")
                             .lastLoginDate(currentDate)
-                            .offices(initOfices(i%2 == 0, 2))
+                            .offices(initOfices(i % 2 == 0, 2))
                             .build()
             );
         }
@@ -93,7 +94,7 @@ public class JxlsPlusTest {
         context = new Context(params);
     }
 
-    public List<Office> initOfices(boolean isEven, final int size) {
+    protected List<Office> initOfices(boolean isEven, final int size) {
         if (size < 1) {
             return Collections.emptyList();
         }
