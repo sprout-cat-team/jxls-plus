@@ -6,6 +6,8 @@ import com.tang.jxlsplus.formula.JxlsPlusFormulaProcessor;
 import com.tang.jxlsplus.transform.JxlsPlusPoiTransformer;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.jxls.area.Area;
 import org.jxls.builder.AreaBuilder;
@@ -21,7 +23,9 @@ import java.io.*;
 import java.util.List;
 
 /**
- * JxlsPlus 工具类
+ * JxlsPlus 工具类 <br>
+ * 注意：默认会有注入 stringUtils ({@link StringUtils}) 和 dateUtils ({@link DateFormatUtils}) 两个工具类 <br>
+ * 用法为：${dateUtils.formatUTC(varName,"yyyy-MM-dd")}
  *
  * @author tzg
  */
@@ -51,18 +55,26 @@ public class JxlsPlusUtils {
      * @param outputStream 输出的文件流
      * @param context      参数配置项
      */
-    public static void export(@NonNull InputStream inputStream, @NonNull OutputStream outputStream, Context context) {
+    public static void processTemplate(@NonNull InputStream inputStream, @NonNull OutputStream outputStream, Context context) {
         if (log.isDebugEnabled()) {
             log.debug("start export excel file");
         }
         if (null == context) {
             context = JxlsPlusPoiTransformer.createInitialContext();
         }
+        if (!context.toMap().containsKey(UTILS_STR)) {
+            // 添加字符串处理工具方法
+            context.putVar(UTILS_STR, new StringUtils());
+        }
+        if (!context.toMap().containsKey(UTILS_DATE)) {
+            // 添加日期处理工具方法
+            context.putVar(UTILS_DATE, new DateFormatUtils());
+        }
         try {
 //        JxlsHelper jxlsHelper = JxlsHelper.getInstance();
 //        Transformer transformer = jxlsHelper.createTransformer(inputStream, outputStream);
             Transformer transformer = JxlsPlusPoiTransformer.createTransformer(inputStream, outputStream);
-//        JexlExpressionEvaluator evaluator = (JexlExpressionEvaluator) transformer.getTransformationConfig().getExpressionEvaluator();
+
             AreaBuilder areaBuilder = new XlsCommentAreaBuilder();
             areaBuilder.setTransformer(transformer);
             List<Area> xlsAreaList = areaBuilder.build();
@@ -102,7 +114,7 @@ public class JxlsPlusUtils {
      * @param outputStream 输出的文件流
      * @param context
      */
-    public static void export(@NonNull File templateFile, OutputStream outputStream, Context context) {
+    public static void processTemplate(@NonNull File templateFile, OutputStream outputStream, Context context) {
         if (!templateFile.exists()) {
             throw new IllegalArgumentException("This template file not exist");
         }
@@ -112,7 +124,7 @@ public class JxlsPlusUtils {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        export(inputStream, outputStream, context);
+        processTemplate(inputStream, outputStream, context);
     }
 
     /**
@@ -122,8 +134,8 @@ public class JxlsPlusUtils {
      * @param outFile      输出文件
      * @param context
      */
-    public static void export(File templateFile, File outFile, Context context) {
-        export(templateFile, newOutputStream(outFile), context);
+    public static void processTemplate(File templateFile, File outFile, Context context) {
+        processTemplate(templateFile, newOutputStream(outFile), context);
     }
 
     /**
@@ -132,7 +144,7 @@ public class JxlsPlusUtils {
      * @param outFile
      * @return
      */
-    protected static OutputStream newOutputStream(File outFile) {
+    public static OutputStream newOutputStream(File outFile) {
         //检测目录是否存在，不存在则创建
         if (!outFile.getParentFile().exists()) {
             // 如果文件所在的目录不存在，则创建目录
@@ -160,8 +172,8 @@ public class JxlsPlusUtils {
      * @param outputStream
      * @param context
      */
-    public static void export(@NonNull String templatePath, OutputStream outputStream, Context context) {
-        export(new File(templatePath), outputStream, context);
+    public static void processTemplate(@NonNull String templatePath, OutputStream outputStream, Context context) {
+        processTemplate(new File(templatePath), outputStream, context);
     }
 
     /**
@@ -171,9 +183,9 @@ public class JxlsPlusUtils {
      * @param outputPath
      * @param context
      */
-    public static void export(InputStream inputStream, @NonNull String outputPath, Context context) {
+    public static void processTemplate(InputStream inputStream, @NonNull String outputPath, Context context) {
         File outFile = new File(outputPath);
-        export(inputStream, newOutputStream(outFile), context);
+        processTemplate(inputStream, newOutputStream(outFile), context);
     }
 
 }

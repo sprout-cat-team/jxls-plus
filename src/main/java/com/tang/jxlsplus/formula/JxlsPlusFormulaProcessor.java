@@ -1,5 +1,6 @@
 package com.tang.jxlsplus.formula;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jxls.area.Area;
 import org.jxls.common.CellData;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
  *
  * @author tzg
  */
+@Slf4j
 public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
 
     @Override
@@ -30,6 +32,7 @@ public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
         // TODO 未完成，先测试源代码的效果，再根据实际情况做调整
         Set<CellData> formulaCells = transformer.getFormulaCells();
         for (CellData formulaCellData : formulaCells) {
+            log.debug("Processing formula cell {}", formulaCellData);
             List<CellRef> targetFormulaCells = formulaCellData.getTargetPos();
             Map<CellRef, List<CellRef>> targetCellRefMap = buildTargetCellRefMap(transformer, area, formulaCellData);
             Map<String, List<CellRef>> jointedCellRefMap = buildJointedCellRefMap(transformer, formulaCellData);

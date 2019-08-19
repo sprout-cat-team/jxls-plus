@@ -58,7 +58,7 @@ public class JxlsPlusPoiTransformer extends PoiTransformer {
             short height = row.getHeight(),
                     srcHeight = (short) sheetData.getRowData(srcCellRef.getRow()).getHeight();
             CellStyle style = row.getRowStyle();
-            boolean wrapText = null == style ? false : style.getWrapText();
+            boolean wrapText = null != style && style.getWrapText();
             if (wrapText && height != (short) -1) {
                 // 根据内容自适应高度的处理
                 row.setHeight((short) -1);
@@ -82,16 +82,16 @@ public class JxlsPlusPoiTransformer extends PoiTransformer {
         }
     }
 
-    /**
-     * 获取 row data
-     *
-     * @param sheetName
-     * @param rowNum
-     * @return
-     */
-    public RowData getRowData(String sheetName, int rowNum) {
-        return sheetMap.get(sheetName).getRowData(rowNum);
-    }
+//    /**
+//     * 获取 row data
+//     *
+//     * @param sheetName
+//     * @param rowNum
+//     * @return
+//     */
+//    public RowData getRowData(String sheetName, int rowNum) {
+//        return sheetMap.get(sheetName).getRowData(rowNum);
+//    }
 
     /**
      * 实例化转换器（必须要实现，不可用 {@link PoiTransformer#createTransformer}）
