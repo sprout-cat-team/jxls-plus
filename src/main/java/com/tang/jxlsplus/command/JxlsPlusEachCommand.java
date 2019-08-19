@@ -1,6 +1,7 @@
 package com.tang.jxlsplus.command;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jxls.area.Area;
 import org.jxls.command.*;
 import org.jxls.common.*;
@@ -8,9 +9,7 @@ import org.jxls.expression.ExpressionEvaluator;
 import org.jxls.util.JxlsHelper;
 import org.jxls.util.UtilWrapper;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Description: 扩展 {@link EachCommand} 指令 <br>
@@ -70,7 +69,7 @@ public class JxlsPlusEachCommand extends EachCommand {
     }
 
     public void setBlankArea(String blankArea) {
-        if (blankArea == null) {
+        if (StringUtils.isBlank(blankArea)) {
             this.blankArea = false;
         } else {
             this.blankArea = "1".equals(blankArea) || "true".equalsIgnoreCase(blankArea);
@@ -86,10 +85,11 @@ public class JxlsPlusEachCommand extends EachCommand {
     @Override
     public Size applyAt(CellRef cellRef, Context context) {
         Iterable<?> itemsCollection;
-        try {
-            itemsCollection = util.transformToIterableObject(getTransformationConfig().getExpressionEvaluator(), getItems(), context);
-        } catch (Exception e) {
-            log.warn("Failed to evaluate collection expression {}", getItems(), e);
+        Object collectionObject = getTransformationConfig().getExpressionEvaluator().evaluate(getItems(), context.toMap());
+        if (collectionObject instanceof Iterable) {
+            itemsCollection = (Iterable<?>) collectionObject;
+        } else {
+            log.warn("Failed to evaluate collection expression {}", getItems());
             itemsCollection = Collections.emptyList();
         }
         Size size;
@@ -108,11 +108,11 @@ public class JxlsPlusEachCommand extends EachCommand {
 
     /**
      * 数据集合的处理,针对（{@link EachCommand#processCollection(Context, Iterable, CellRef, String)}）方法的重写
-     *
      * @param context
      * @param itemsCollection
      * @param cellRef
      * @param varName
+     * @param isGroup
      * @return
      */
     protected Size processCollection(Context context, Iterable<?> itemsCollection, CellRef cellRef, String varName, boolean isGroup) {
@@ -153,7 +153,6 @@ public class JxlsPlusEachCommand extends EachCommand {
                     context.removeVar(varNameIndex);
                     continue;
                 }
-                dataIndex++;
                 if (cellRefGenerator != null) {
                     currentCell = cellRefGenerator.generateCellRef(index++, context);
                 }
@@ -161,6 +160,10 @@ public class JxlsPlusEachCommand extends EachCommand {
                     break;
                 }
                 Size size = area.applyAt(currentCell, context);
+                if (!Size.ZERO_SIZE.equals(size)) {
+                    // 空行不计数
+                    dataIndex++;
+                }
                 if (cellRefGenerator != null) {
                     newWidth = Math.max(newWidth, size.getWidth());
                     newHeight = Math.max(newHeight, size.getHeight());
@@ -205,8 +208,10 @@ public class JxlsPlusEachCommand extends EachCommand {
             Object sheetnames = context.getVar(getMultisheet());
             if (sheetnames == null) {
                 return null;
-            } else if (sheetnames instanceof List) {
-                return (List<String>) sheetnames;
+            } else if (sheetnames instanceof Collection) {
+                return new ArrayList<>((Collection<String>) sheetnames);
+            } else if (sheetnames.getClass().isArray()) {
+                return Arrays.asList((String[]) sheetnames);
             }
         } catch (Exception e) {
             throw new JxlsException("Failed to get sheet names from " + getMultisheet(), e);
