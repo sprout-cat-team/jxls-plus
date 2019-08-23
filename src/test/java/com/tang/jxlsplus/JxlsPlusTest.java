@@ -3,6 +3,7 @@ package com.tang.jxlsplus;
 import com.tang.jxlsplus.entity.Employee;
 import com.tang.jxlsplus.entity.Office;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.junit.Before;
@@ -31,27 +32,27 @@ public class JxlsPlusTest {
 
     @Test
     public void eachCmd() throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream("/each_template.xlsx");
+        String template = "/each_template.xlsx";
         JxlsPlusUtils.processTemplate(
-                inputStream,
+                getClass().getResourceAsStream(template),
                 String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachDemo.xlsx", currentUser),
                 context
         );
 
-//        log.debug("===================================== 分割线 ==================================================");
-//
-//        jxlsHelper(
-//                inputStream,
-//                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachDemo.xlsx", currentUser),
-//                context
-//        );
+        log.debug("===================================== 分割线 ==================================================");
+
+        jxlsHelper(
+                getClass().getResourceAsStream(template),
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachDemo.xlsx", currentUser),
+                context
+        );
     }
 
     @Test
     public void eachIfCmd() throws IOException {
-        InputStream inputStream = getClass().getResourceAsStream("/each_if_template.xlsx");
+        String template = "/each_if_template.xlsx";
         JxlsPlusUtils.processTemplate(
-                inputStream,
+                getClass().getResourceAsStream(template),
                 String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachIfDemo.xlsx", currentUser),
                 context
         );
@@ -59,37 +60,89 @@ public class JxlsPlusTest {
         log.debug("===================================== 分割线 ==================================================");
 
         jxlsHelper(
-                inputStream,
+                getClass().getResourceAsStream(template),
                 String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachIfDemo.xlsx", currentUser),
                 context
         );
     }
 
     @Test
-    public void gridCmd() throws IOException {
-        String[] headers = new String[]{"Name", "Age", "Email", "LastLoginDate"};
-        context.putVar("headers", headers);
-        context.putVar("cellProps", "rowData.name;rowData.age;rowData.email;rowData.lastLoginDate");
-        InputStream inputStream = getClass().getResourceAsStream("/grid_template.xlsx");
+    public void eachGroupCmd() throws IOException {
+        String template = "/eachGroup_template.xlsx";
         JxlsPlusUtils.processTemplate(
-                inputStream,
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_gridDemo.xlsx", currentUser),
+                getClass().getResourceAsStream(template),
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachGroupDemo.xlsx", currentUser),
                 context
         );
 
         log.debug("===================================== 分割线 ==================================================");
 
         jxlsHelper(
-                inputStream,
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\gridDemo.xlsx", currentUser),
+                getClass().getResourceAsStream(template),
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachGroupDemo.xlsx", currentUser),
                 context
         );
+    }
+
+    @Test
+    public void eachMergeCmd() throws IOException {
+        String template = "/eachMerge_template.xlsx";
+        JxlsPlusUtils.processTemplate(
+                getClass().getResourceAsStream(template),
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachMergeDemo.xlsx", currentUser),
+                context
+        );
+
+//        log.debug("===================================== 分割线 ==================================================");
+
+//        jxlsHelper(
+//                getClass().getResourceAsStream(template),
+//                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachMergeDemo.xlsx", currentUser),
+//                context
+//        );
+    }
+
+    @Test
+    public void gridCmd() throws IOException {
+        String[] headers = new String[]{"序号", "姓名", "年龄", "电子邮箱", "出生日期"};
+        List<String> cellProps = new ArrayList<String>() {{
+            add("rowData_index+1");
+            add("rowData.name");
+            add("rowData.age");
+            add("rowData.email");
+            add("rowData.birthDate");
+        }};
+        context.putVar("headers", headers);
+        context.putVar("cellProps", StringUtils.join(cellProps, ";"));
+
+        String template = "/grid_template.xlsx";
+        JxlsPlusUtils.processTemplate(
+                getClass().getResourceAsStream(template),
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_gridDemo.xlsx", currentUser),
+                context
+        );
+
+        JxlsPlusUtils.processGridTemplate(
+                Arrays.asList(headers),
+                employees,
+                cellProps,
+                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_gridDemo2.xls", currentUser)
+        );
+
+//        log.debug("===================================== 分割线 ==================================================");
+//
+//        jxlsHelper(
+//                getClass().getResourceAsStream(template),
+//                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\gridDemo.xlsx", currentUser),
+//                context
+//        );
     }
 
     //======================== fun          =====================================
 
     /**
      * jxls 原始导出方法
+     *
      * @param templateStream
      * @param ouputPath
      * @param context
@@ -138,7 +191,7 @@ public class JxlsPlusTest {
                     Employee.builder()
                             .empId(UUID.randomUUID().toString())
                             .name("Employee " + (i + 1))
-                            .age(18 + i % 2)
+                            .age(18 + i % 3)
                             .mobile("15013459999")
                             .email("tang_guo_" + i + "@163.com")
                             .birthDate(LocalDate.of(2001 - i % 2, 1, 1))

@@ -30,17 +30,21 @@ public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
     @Override
     public void processAreaFormulas(Transformer transformer, Area area) {
         // TODO 未完成，先测试源代码的效果，再根据实际情况做调整
+        // 获取含公式的单元格
         Set<CellData> formulaCells = transformer.getFormulaCells();
+        int size = 0;
         for (CellData formulaCellData : formulaCells) {
             log.debug("Processing formula cell {}", formulaCellData);
+            // 获取含公式单元格索引信息
             List<CellRef> targetFormulaCells = formulaCellData.getTargetPos();
             Map<CellRef, List<CellRef>> targetCellRefMap = buildTargetCellRefMap(transformer, area, formulaCellData);
             Map<String, List<CellRef>> jointedCellRefMap = buildJointedCellRefMap(transformer, formulaCellData);
             List<CellRef> usedCellRefs = new ArrayList<>();
 
+            size = targetFormulaCells.size();
             // process all of the result (target) formula cells
             // a result formula cell is a cell into which the original cell with the formula was transformed
-            for (int i = 0; i < targetFormulaCells.size(); i++) {
+            for (int i = 0; i < size; i++) {
                 CellRef targetFormulaCellRef = targetFormulaCells.get(i);
                 String targetFormulaString = formulaCellData.getFormula();
                 boolean isFormulaCellRefsEmpty = true;
@@ -59,7 +63,7 @@ public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
                         List<CellRef> targetCellRefs = Util.createTargetCellRefListByColumn(targetFormulaCellRef, targetCells, usedCellRefs);
                         usedCellRefs.addAll(targetCellRefs);
                         replacementString = Util.createTargetCellRef(targetCellRefs);
-                    } else if (targetCells.size() == targetFormulaCells.size()) {
+                    } else if (targetCells.size() == size) {
                         // if the number of the cell reference target cells is the same as the number of cells into which
                         // the formula was transformed we assume that a formula target cell should use the
                         // corresponding target cell reference
@@ -67,8 +71,8 @@ public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
                         replacementString = targetCellRefCellRef.getCellName();
                     } else {
                         // trying to group the individual target cell refs used in a formula into a range
-                        List<List<CellRef>> rangeList = Util.groupByRanges(targetCells, targetFormulaCells.size());
-                        if (rangeList.size() == targetFormulaCells.size()) {
+                        List<List<CellRef>> rangeList = Util.groupByRanges(targetCells, size);
+                        if (rangeList.size() == size) {
                             // if the number of ranges equals to the number of target formula cells
                             // we assume the formula cells directly map onto ranges and so just taking a corresponding range by index
                             List<CellRef> range = rangeList.get(i);
@@ -93,9 +97,9 @@ public class JxlsPlusFormulaProcessor extends AbstractFormulaProcessor {
                     }
                     isFormulaJointedCellRefsEmpty = false;
                     // trying to group the target cell references into ranges
-                    List<List<CellRef>> rangeList = Util.groupByRanges(targetCellRefList, targetFormulaCells.size());
+                    List<List<CellRef>> rangeList = Util.groupByRanges(targetCellRefList, size);
                     String replacementString;
-                    if (rangeList.size() == targetFormulaCells.size()) {
+                    if (rangeList.size() == size) {
                         // if the number of ranges equals to the number of target formula cells
                         // we assume the formula cells directly map onto ranges and so just taking a corresponding range by index
                         List<CellRef> range = rangeList.get(i);

@@ -3,6 +3,7 @@ package com.tang.jxlsplus;
 import com.tang.jxlsplus.command.JxlsPlusEachCommand;
 import com.tang.jxlsplus.command.JxlsPlusGridCommand;
 import com.tang.jxlsplus.formula.JxlsPlusFormulaProcessor;
+import com.tang.jxlsplus.template.JxlsPlusExporter;
 import com.tang.jxlsplus.transform.JxlsPlusPoiTransformer;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -15,11 +16,13 @@ import org.jxls.builder.xls.XlsCommentAreaBuilder;
 import org.jxls.command.GridCommand;
 import org.jxls.common.CellRef;
 import org.jxls.common.Context;
+import org.jxls.common.JxlsException;
 import org.jxls.formula.FormulaProcessor;
 import org.jxls.transform.Transformer;
 import org.jxls.util.JxlsHelper;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,70 +42,43 @@ public class JxlsPlusUtils {
     }
 
     /**
-     * 字符串处理工具 key
-     */
-    public final static String UTILS_STR = "stringUtils";
-    /**
-     * 日期处理工具 key
-     */
-    public final static String UTILS_DATE = "dateUtils";
-
-    /**
      * 根据输入的模板导出 excel 文件（基础实现）<br>
      * 参照 {@link JxlsHelper#createTransformer} 的实现
      *
-     * @param inputStream  输入的模板文件流
-     * @param outputStream 输出的文件流
-     * @param context      参数配置项
+     * @param templateStream 输入的模板文件流
+     * @param targetStream   输出的文件流
+     * @param context        参数配置项（可以是数据变量或工具类）
      */
-    public static void processTemplate(@NonNull InputStream inputStream, @NonNull OutputStream outputStream, Context context) {
+    public static void processTemplate(@NonNull InputStream templateStream, @NonNull OutputStream targetStream, Context context) {
         if (log.isDebugEnabled()) {
             log.debug("start export excel file");
         }
         if (null == context) {
             context = JxlsPlusPoiTransformer.createInitialContext();
+        } else {
+            JxlsPlusPoiTransformer.checkContext(context);
         }
-        if (!context.toMap().containsKey(UTILS_STR)) {
-            // 添加字符串处理工具方法
-            context.putVar(UTILS_STR, new StringUtils());
-        }
-        if (!context.toMap().containsKey(UTILS_DATE)) {
-            // 添加日期处理工具方法
-            context.putVar(UTILS_DATE, new DateFormatUtils());
-        }
-        try {
-//        JxlsHelper jxlsHelper = JxlsHelper.getInstance();
-//        Transformer transformer = jxlsHelper.createTransformer(inputStream, outputStream);
-            Transformer transformer = JxlsPlusPoiTransformer.createTransformer(inputStream, outputStream);
 
-            AreaBuilder areaBuilder = new XlsCommentAreaBuilder();
-            areaBuilder.setTransformer(transformer);
-            List<Area> xlsAreaList = areaBuilder.build();
-            FormulaProcessor formulaProcessor = new JxlsPlusFormulaProcessor();
-            for (Area xlsArea : xlsAreaList) {
-                xlsArea.applyAt(new CellRef(xlsArea.getStartCellRef().getCellName()), context);
-                xlsArea.setFormulaProcessor(formulaProcessor);
-                xlsArea.processFormulas();
-            }
-            transformer.write();
-        } catch (InvalidFormatException e) {
-            throw new IllegalArgumentException("文件格式不正确", e);
+        JxlsHelper jxlsHelper = JxlsHelper.getInstance();
+
+        try {
+            // 创建自定义的转换器
+            Transformer transformer = JxlsPlusPoiTransformer.createTransformer(templateStream, targetStream);
+            // 设置自定义公式处理器
+//            jxlsHelper.setFormulaProcessor(new JxlsPlusFormulaProcessor());
+            jxlsHelper.processTemplate(context, transformer);
         } catch (IOException e) {
-            throw new IllegalArgumentException("文件读写异常", e);
+            throw new JxlsException("Failed to write to output stream", e);
         } finally {
-            if (null != inputStream) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                templateStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            if (null != outputStream) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                targetStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -111,10 +87,10 @@ public class JxlsPlusUtils {
      * 根据输入的模板导出 excel 文件
      *
      * @param templateFile 模板文件
-     * @param outputStream 输出的文件流
-     * @param context
+     * @param targetStream 输出的文件流
+     * @param context      参数配置项（可以是数据变量或工具类）
      */
-    public static void processTemplate(@NonNull File templateFile, OutputStream outputStream, Context context) {
+    public static void processTemplate(@NonNull File templateFile, OutputStream targetStream, Context context) {
         if (!templateFile.exists()) {
             throw new IllegalArgumentException("This template file not exist");
         }
@@ -124,7 +100,7 @@ public class JxlsPlusUtils {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        processTemplate(inputStream, outputStream, context);
+        processTemplate(inputStream, targetStream, context);
     }
 
     /**
@@ -132,7 +108,7 @@ public class JxlsPlusUtils {
      *
      * @param templateFile 模板文件
      * @param outFile      输出文件
-     * @param context
+     * @param context      参数配置项（可以是数据变量或工具类）
      */
     public static void processTemplate(File templateFile, File outFile, Context context) {
         processTemplate(templateFile, newOutputStream(outFile), context);
@@ -141,17 +117,14 @@ public class JxlsPlusUtils {
     /**
      * 创建文件的输出流（判断文件的文件夹不存在时创建新的）
      *
-     * @param outFile
+     * @param outFile 输出文件
      * @return
      */
-    public static OutputStream newOutputStream(File outFile) {
+    public static OutputStream newOutputStream(@NonNull File outFile) {
         //检测目录是否存在，不存在则创建
         if (!outFile.getParentFile().exists()) {
             // 如果文件所在的目录不存在，则创建目录
             if (!outFile.getParentFile().mkdir()) {
-                if (log.isDebugEnabled()) {
-                    log.error("This file directory[{}] make failure", outFile.getParentFile().getAbsolutePath());
-                }
                 throw new IllegalArgumentException("This file directory make failure");
             }
         }
@@ -169,23 +142,67 @@ public class JxlsPlusUtils {
      * 根据输入的模板导出 excel 文件
      *
      * @param templatePath 模板文件路径
-     * @param outputStream
-     * @param context
+     * @param targetStream
+     * @param context      参数配置项（可以是数据变量或工具类）
      */
-    public static void processTemplate(@NonNull String templatePath, OutputStream outputStream, Context context) {
-        processTemplate(new File(templatePath), outputStream, context);
+    public static void processTemplate(@NonNull String templatePath, OutputStream targetStream, Context context) {
+        processTemplate(new File(templatePath), targetStream, context);
     }
 
     /**
      * 根据输入的模板导出 excel 文件
      *
-     * @param inputStream
-     * @param outputPath
-     * @param context
+     * @param templateStream 输入的模板文件流
+     * @param outputPath     输出文件路径
+     * @param context        参数配置项（可以是数据变量或工具类）
      */
-    public static void processTemplate(InputStream inputStream, @NonNull String outputPath, Context context) {
+    public static void processTemplate(InputStream templateStream, @NonNull String outputPath, Context context) {
         File outFile = new File(outputPath);
-        processTemplate(inputStream, newOutputStream(outFile), context);
+        processTemplate(templateStream, newOutputStream(outFile), context);
+    }
+
+    /**
+     * 指定通用模板导出 excel 文件 <br>
+     * {@link JxlsPlusExporter} 的实现
+     *
+     * @param targetStream   目标输出流
+     * @param headers        表头记录
+     * @param dataObjects    数据记录
+     * @param objectProps    数据属性
+     * @param templateStream 模板输入流
+     */
+    public static void processGridTemplate(InputStream templateStream, Iterable<?> headers, Iterable<?> dataObjects,
+                                           List<String> objectProps, OutputStream targetStream) {
+        new JxlsPlusExporter().registerGridTemplate(templateStream)
+                .gridExport(headers, dataObjects, objectProps, targetStream);
+    }
+
+    /**
+     * 通用模板导出 excel 文件<br>
+     * {@link JxlsPlusExporter} 的实现
+     *
+     * @param headers      表头记录
+     * @param dataObjects  数据记录
+     * @param cellProps    数据属性
+     * @param targetStream 目标输出流
+     */
+    public static void processGridTemplate(Iterable<?> headers, Iterable<?> dataObjects,
+                                           List<String> cellProps, OutputStream targetStream) {
+        new JxlsPlusExporter().gridExport(headers, dataObjects, cellProps, targetStream);
+    }
+
+    /**
+     * 通用模板导出 excel 文件
+     *
+     * @param headers     表头记录
+     * @param dataObjects 数据记录
+     * @param cellProps   数据属性
+     * @param targetPath  目标文件路径
+     */
+    public static void processGridTemplate(Iterable<?> headers, Iterable<?> dataObjects,
+                                           List<String> cellProps, String targetPath) {
+        OutputStream targetStream = newOutputStream(new File(targetPath));
+        processGridTemplate(headers, dataObjects, cellProps, targetStream);
     }
 
 }

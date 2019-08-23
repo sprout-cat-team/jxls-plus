@@ -1,7 +1,6 @@
 package com.tang.jxlsplus.command;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jxls.area.Area;
 import org.jxls.command.AbstractCommand;
@@ -15,7 +14,6 @@ import org.jxls.expression.ExpressionEvaluator;
 import org.jxls.util.UtilWrapper;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.jxls.command.GridCommand.DATA_VAR;
@@ -26,7 +24,7 @@ import static org.jxls.command.GridCommand.HEADER_VAR;
  * 目前采取拷贝原本进行修改的方式，因为指令中大部分变量和方法是所有的无法重写。<br>
  * 读取修改的源码版本为 v2.6.0 <br>
  * 增加“var”和“propsVar”变量。 <br>
- * 1、<b>var</b> ：允许 grid 指令在指令中指定元素的变量名称，默认为 <b>rowData</b> ； <br>
+ * 1、<b>var</b> ：允许 grid 指令在指令中指定元素的变量名称，默认为 <b>rowData</b> ，并且允许获取索引变量 <b>rowData_index</b>； <br>
  * 2、<b>propsVar</b> : 允许 grid 指令通过变量获取元素属性变量名，多个时，以分号（;）隔开；
  *
  * @author tzg
@@ -116,7 +114,9 @@ public class JxlsPlusGridCommand extends AbstractCommand {
     }
 
     public void setVar(String var) {
-        this.var = var;
+        if (StringUtils.isNotBlank(var)) {
+            this.var = var;
+        }
     }
 
     public String getProps() {
@@ -131,8 +131,18 @@ public class JxlsPlusGridCommand extends AbstractCommand {
     public void setProps(String props) {
         this.props = props;
         if (props != null) {
-            rowObjectProps = Arrays.asList(StringUtils.split(props.replaceAll("\\s+", EMPTY), ";")); // Remove whitespace and split into List.
+            // Remove whitespace and split into List.
+            rowObjectProps = Arrays.asList(StringUtils.split(props.replaceAll("\\s+", EMPTY), ";"));
         }
+    }
+
+    /**
+     * 设置数据属性
+     *
+     * @param rowObjectProps
+     */
+    public void setRowObjectProps(List<String> rowObjectProps) {
+        this.rowObjectProps = rowObjectProps;
     }
 
     public String getPropsVar() {
@@ -269,6 +279,8 @@ public class JxlsPlusGridCommand extends AbstractCommand {
         CellRef currentCell = cellRef;
         int totalWidth = 0;
         int totalHeight = 0;
+        int dataIndex = 0;
+        String index_var = var.concat("_index"), var_pre = var.concat(".");
         Context.Config config = context.getConfig();
         boolean oldIgnoreSourceCellStyle = config.isIgnoreSourceCellStyle();
         config.setIgnoreSourceCellStyle(true);
@@ -277,6 +289,7 @@ public class JxlsPlusGridCommand extends AbstractCommand {
         // TODO possible error: content of DATA_VAR is not saved & restored
         for (Object rowObject : dataCollection) {
             context.putVar(var, rowObject);
+            context.putVar(index_var, dataIndex);
             if (rowObject.getClass().isArray() || rowObject instanceof Iterable) {
                 Iterable<?> cellCollection;
                 if (rowObject.getClass().isArray()) {
@@ -303,46 +316,30 @@ public class JxlsPlusGridCommand extends AbstractCommand {
                 int width = 0;
                 int height = 0;
                 for (String prop : rowObjectProps) {
-                    try {
-                        Object value = checkRowData(prop) ?
-                                // 支持通过字段映射获取对应的值
-                                expressionEvaluator.evaluate(prop, context.toMap()) :
-                                PropertyUtils.getProperty(rowObject, prop);
-                        context.putVar(DATA_VAR, value);
-                        Size size = bodyArea.applyAt(currentCell, context);
-                        currentCell = new CellRef(currentCell.getSheetName(), currentCell.getRow(), currentCell.getCol() + size.getWidth());
-                        width += size.getWidth();
-                        height = Math.max(height, size.getHeight());
-                    } catch (Exception e) {
-                        String message = "Failed to evaluate property " + prop + " of row object of class " + rowObject.getClass().getName();
-                        log.error(message, e);
-                        throw new IllegalStateException(message, e);
+                    if (!StringUtils.startsWithAny(prop.trim(), index_var, var_pre)) {
+                        prop = var_pre.concat(prop);
                     }
+                    // 支持通过字段映射获取对应的值
+                    Object value = expressionEvaluator.evaluate(prop, context.toMap());
+
+                    context.putVar(DATA_VAR, value);
+                    Size size = bodyArea.applyAt(currentCell, context);
+                    currentCell = new CellRef(currentCell.getSheetName(), currentCell.getRow(), currentCell.getCol() + size.getWidth());
+                    width += size.getWidth();
+                    height = Math.max(height, size.getHeight());
                 }
                 totalWidth = Math.max(width, totalWidth);
                 totalHeight = totalHeight + height;
                 currentCell = new CellRef(cellRef.getSheetName(), currentCell.getRow() + height, cellRef.getCol());
             }
+            dataIndex++;
         }
         context.removeVar(DATA_VAR);
         context.removeVar(var);
+        context.removeVar(index_var);
         config.setIgnoreSourceCellStyle(oldIgnoreSourceCellStyle);
         config.setCellStyleMap(oldStyleCellMap);
         return new Size(totalWidth, totalHeight);
-    }
-
-    /**
-     * 检查属性字符串是否包含 rowData.*
-     *
-     * @param prop
-     * @return
-     */
-    protected boolean checkRowData(String prop) {
-        if (StringUtils.isAnyBlank(prop, var)) {
-            return false;
-        } else {
-            return Pattern.compile(var.concat("\\.+\\w")).matcher(prop).find();
-        }
     }
 
 }

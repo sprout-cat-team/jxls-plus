@@ -1,11 +1,14 @@
 package com.tang.jxlsplus.transform;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.jxls.common.*;
 import org.jxls.transform.poi.PoiCellData;
 import org.jxls.transform.poi.PoiTransformer;
+import org.jxls.transform.poi.PoiUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +21,15 @@ import java.io.OutputStream;
  */
 @Slf4j
 public class JxlsPlusPoiTransformer extends PoiTransformer {
+
+    /**
+     * 字符串处理工具 key
+     */
+    public final static String UTILS_STR = "stringUtils";
+    /**
+     * 日期处理工具 key
+     */
+    public final static String UTILS_DATE = "dateUtils";
 
     /**
      * No streaming
@@ -94,26 +106,76 @@ public class JxlsPlusPoiTransformer extends PoiTransformer {
 //    }
 
     /**
+     * 实例化参数配置项（必须要实现，不可用 {@link PoiTransformer#createInitialContext}）
+     *
+     * @return
+     */
+    public static Context createInitialContext() {
+        Context context = new Context();
+        context.putVar(POI_CONTEXT_KEY, new PoiUtil());
+        // 添加字符串处理工具方法
+        context.putVar(UTILS_STR, new StringUtils());
+        // 添加日期处理工具方法
+        context.putVar(UTILS_DATE, new DateFormatUtils());
+        return context;
+    }
+
+    /**
+     * 检查参数配置项，避免注入缺少的工具
+     *
+     * @param context
+     */
+    public static Context checkContext(Context context) {
+        if (!context.toMap().containsKey(UTILS_STR)) {
+            // 添加字符串处理工具方法
+            context.putVar(UTILS_STR, new StringUtils());
+        }
+        if (!context.toMap().containsKey(UTILS_DATE)) {
+            // 添加日期处理工具方法
+            context.putVar(UTILS_DATE, new DateFormatUtils());
+        }
+        return context;
+    }
+
+    /**
      * 实例化转换器（必须要实现，不可用 {@link PoiTransformer#createTransformer}）
      *
      * @param is
      * @param os
      * @return
      * @throws IOException
-     * @throws InvalidFormatException
      */
-    public static JxlsPlusPoiTransformer createTransformer(InputStream is, OutputStream os) throws IOException, InvalidFormatException {
+    public static JxlsPlusPoiTransformer createTransformer(InputStream is, OutputStream os) {
         JxlsPlusPoiTransformer transformer = createTransformer(is);
         transformer.setOutputStream(os);
         transformer.setInputStream(is);
         return transformer;
     }
 
-    public static JxlsPlusPoiTransformer createTransformer(InputStream is) throws IOException, InvalidFormatException {
-        Workbook workbook = WorkbookFactory.create(is);
+    /**
+     * 实例化转换器（必须要实现，不可用 {@link PoiTransformer#createTransformer(InputStream)}）
+     *
+     * @param is
+     * @return
+     * @throws IOException
+     */
+    public static JxlsPlusPoiTransformer createTransformer(InputStream is) {
+        Workbook workbook;
+        try {
+            workbook = WorkbookFactory.create(is);
+        } catch (IOException e) {
+            throw new JxlsException("Failed to read template file ", e);
+        }
         return createTransformer(workbook);
     }
 
+    /**
+     * 实例化转换器（必须要实现，不可用 {@link PoiTransformer#createTransformer(Workbook)}）
+     *
+     * @param workbook
+     * @return
+     * @throws IOException
+     */
     public static JxlsPlusPoiTransformer createTransformer(Workbook workbook) {
         return new JxlsPlusPoiTransformer(workbook);
     }
