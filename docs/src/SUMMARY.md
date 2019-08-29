@@ -6,6 +6,10 @@
 
 * [XLS Area](jxls_xls_area.md)
 
+* [SimpleExporter](http://jxls.sourceforge.net/reference/simple_exporter.html)
+
+* [Excel 标记](jxls_excel_markup.md)
+
 * [Each 指令](jxls_plus_each_command.md)
 
 * [Grid 指令](jxls_plus_grid_command.md)
