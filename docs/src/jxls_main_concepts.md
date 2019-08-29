@@ -115,6 +115,6 @@ public interface Transformer {
 
 * **JexcelTransformer** - 基于 [**Java Excel API**](http://jexcelapi.sourceforge.net/) 的实现
 
-注意：**Jxls-plus** 是针对  **PoiTransformer** 进行扩展
+注意：**Jxls-plus** 是针对 **PoiTransformer** 进行扩展
 
 ### [原文地址](http://jxls.sourceforge.net/reference/main_concepts.html)
