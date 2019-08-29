@@ -21,11 +21,11 @@
 
 > 依据 [**jxls** doc](http://jxls.sourceforge.net/) 进行撰写，并补充控制的内容
 
-* [主要概念](docs/jxls_main_concepts.md)
+* [主要概念](docs/src/jxls_main_concepts.md)
 
-* [Each 指令说明](docs/jxls_plus_each_command.md)
+* [Each 指令说明](docs/src/jxls_plus_each_command.md)
 
-* [Grid 指令说明](docs/jxls_plus_grid_command.md)
+* [Grid 指令说明](docs/src/jxls_plus_grid_command.md)
 
 #### 参与贡献
 
