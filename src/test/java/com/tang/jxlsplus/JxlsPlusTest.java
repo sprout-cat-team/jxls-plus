@@ -49,68 +49,14 @@ public class JxlsPlusTest {
     }
 
     @Test
-    public void eachIfCmd() throws IOException {
-        String template = "/each_if_template.xlsx";
-        JxlsPlusUtils.processTemplate(
-                getClass().getResourceAsStream(template),
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachIfDemo.xlsx", currentUser),
-                context
-        );
-
-        log.debug("===================================== 分割线 ==================================================");
-
-        jxlsHelper(
-                getClass().getResourceAsStream(template),
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachIfDemo.xlsx", currentUser),
-                context
-        );
-    }
-
-    @Test
-    public void eachGroupCmd() throws IOException {
-        String template = "/eachGroup_template.xlsx";
-        JxlsPlusUtils.processTemplate(
-                getClass().getResourceAsStream(template),
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachGroupDemo.xlsx", currentUser),
-                context
-        );
-
-        log.debug("===================================== 分割线 ==================================================");
-
-        jxlsHelper(
-                getClass().getResourceAsStream(template),
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachGroupDemo.xlsx", currentUser),
-                context
-        );
-    }
-
-    @Test
-    public void eachMergeCmd() throws IOException {
-        String template = "/eachMerge_template.xlsx";
-        JxlsPlusUtils.processTemplate(
-                getClass().getResourceAsStream(template),
-                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\jp_eachMergeDemo.xlsx", currentUser),
-                context
-        );
-
-//        log.debug("===================================== 分割线 ==================================================");
-
-//        jxlsHelper(
-//                getClass().getResourceAsStream(template),
-//                String.format("C:\\Users\\%s\\Desktop\\jxls-plus\\eachMergeDemo.xlsx", currentUser),
-//                context
-//        );
-    }
-
-    @Test
     public void gridCmd() throws IOException {
-        String[] headers = new String[]{"序号", "姓名", "年龄", "电子邮箱", "出生日期"};
+        String[] headers = new String[]{"序号", "姓名", "年龄", "电子邮箱", "入职日期"};
         List<String> cellProps = new ArrayList<String>() {{
             add("rowData_index+1");
-            add("rowData.name");
-            add("rowData.age");
-            add("rowData.email");
-            add("rowData.birthDate");
+            add("name");
+            add("age");
+            add("email");
+            add("hiredate");
         }};
         context.putVar("headers", headers);
         context.putVar("cellProps", StringUtils.join(cellProps, ";"));
