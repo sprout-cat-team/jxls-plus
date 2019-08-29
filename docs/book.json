@@ -1,0 +1,30 @@
+{
+  "title": "JXLS-PLUS使用文档",
+  "author": "tzg",
+  "language": "zh-hans",
+  "root": "./src/",
+  "plugins": [
+    "-search",
+    "search-pro"
+  ],
+  "pluginsConfig": {
+    "search-pro": {
+      "cutWordLib": "nodejieba",
+      "defineWord": [
+        "Gitbook Use"
+      ]
+    }
+  },
+  "pdf": {
+    "pageNumbers": true,
+    "fontFamily": "Arial",
+    "fontSize": 12,
+    "paperSize": "a4",
+    "margin": {
+      "right": 62,
+      "left": 62,
+      "top": 56,
+      "bottom": 56
+    }
+  }
+}
