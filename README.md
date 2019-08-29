@@ -19,13 +19,7 @@
 
 #### 使用说明
 
-> 依据 [**jxls** doc](http://jxls.sourceforge.net/) 进行撰写，并补充控制的内容
-
-* [主要概念](docs/src/jxls_main_concepts.md)
-
-* [Each 指令说明](docs/src/jxls_plus_each_command.md)
-
-* [Grid 指令说明](docs/src/jxls_plus_grid_command.md)
+详细使用请查阅[文档](docs/src/SUMMARY.md)
 
 #### 参与贡献
 
