@@ -102,3 +102,5 @@ jx:<command_name>(attr1='val1' attr2='val2' ... attrN='valN' lastCell=<last_cell
 jx:each(items="department.staff", var="employee", lastCell="F8")
 jx:if(condition="employee.payment <= 2000", lastCell="F8", areas=["A8:F8","A13:F13"])
 ```
+
+> [原文链接](http://jxls.sourceforge.net/reference/excel_markup.html)

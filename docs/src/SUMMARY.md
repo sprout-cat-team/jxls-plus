@@ -10,6 +10,8 @@
 
 * [Excel 标记](jxls_excel_markup.md)
 
+* [表达式语言](http://jxls.sourceforge.net/reference/expression_language.html)
+
 * [Each 指令](jxls_plus_each_command.md)
 
 * [Grid 指令](jxls_plus_grid_command.md)
