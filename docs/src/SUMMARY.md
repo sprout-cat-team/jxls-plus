@@ -20,4 +20,17 @@
 
 * [Grid 指令](jxls_plus_grid_command.md)
 
+* [Image 指令](jxls_image_command.md)
+
 * [自定义指令](jxls_custom_command.md)
+
+* [Excel 标准公式](jxls_excel_formulas.md)
+
+* [多个工作表](http://jxls.sourceforge.net/reference/multi_sheets.html)
+
+* [区域侦听器（ AreaListener ）](jxls_area_listener.md)
+
+* [Jxls Reader](http://jxls.sourceforge.net/reference/reader.html)
+
+* [SQL in Template](http://jxls.sourceforge.net/reference/sql_in_template.html)
+
