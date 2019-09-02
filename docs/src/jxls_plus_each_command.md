@@ -28,7 +28,10 @@
 
 * _**lastCell**_ 是指向指令区域最后一个单元格的任何指令的通用属性
 
-> 其中 **var** 和 **items** 是必要的属性，而其他属性为可选属性。
+> 其中 **var** 和 **items** 是必要的属性，而其他属性为可选属性。<br>
+> <br>
+> **jxls-plus** 项目对 **Each** 指令的扩展：<br>
+> 如果相要在模板中获取迭代的集合索引，可以通过 **[varName]_index** 获取，例如，把 **var** 属性设置为 **row** 则索引的变量名为 **row_index** 。
 
 有关使用 **cellRefGenerator** 和 **multisheet** 属性的更多信息，请检查[例子](http://jxls.sourceforge.net/reference/multi_sheets.html)。
 
