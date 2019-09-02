@@ -14,6 +14,10 @@
 
 * [Each 指令](jxls_plus_each_command.md)
 
+* [If 指令](jxls_if_command.md)
+
+* [UpdateCell 指令](jxls_updateCell_command.md)
+
 * [Grid 指令](jxls_plus_grid_command.md)
 
 * [自定义指令](jxls_custom_command.md)
