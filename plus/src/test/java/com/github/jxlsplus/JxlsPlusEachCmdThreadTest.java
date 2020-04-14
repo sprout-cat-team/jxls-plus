@@ -1,4 +1,4 @@
-package com.sproutcat.jxlsplus;
+package com.github.jxlsplus;
 
 import lombok.extern.slf4j.Slf4j;
 

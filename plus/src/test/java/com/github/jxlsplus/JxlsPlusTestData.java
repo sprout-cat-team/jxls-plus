@@ -1,7 +1,7 @@
-package com.sproutcat.jxlsplus;
+package com.github.jxlsplus;
 
-import com.sproutcat.jxlsplus.entity.Employee;
-import com.sproutcat.jxlsplus.entity.Office;
+import com.github.jxlsplus.entity.Employee;
+import com.github.jxlsplus.entity.Office;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.time.DateUtils;
