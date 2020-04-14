@@ -11,7 +11,7 @@
 
 ```xml
 <dependency>
-    <groupId>com.tang</groupId>
+    <groupId>com.github.sproutcat</groupId>
     <artifactId>jxls-plus</artifactId>
     <version>${jxls.plus.lastVersion}</version>
 </dependency>
