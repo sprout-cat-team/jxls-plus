@@ -1,4 +1,4 @@
-package com.github.jxlsplus.entity;
+package com.github.sproutcat.jxlsplus.entity;
 
 import lombok.Builder;
 import lombok.Data;
