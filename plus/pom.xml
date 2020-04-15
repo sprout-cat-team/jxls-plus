@@ -10,6 +10,7 @@
 
     <name>jxls-plus</name>
     <url>https://github.com/sproutcat/jxls-plus</url>
+    <description>jxls-plus 是一个针对 jxls 的扩展包（该项目只针对 poi 的实现）</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -137,6 +138,19 @@
             <timezone>+8</timezone>
         </developer>
     </developers>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:sproutcat/jxls-plus.git</connection>
+        <developerConnection>scm:git:git@github.com:sproutcat/jxls-plus.git</developerConnection>
+        <url>git@github.com:sproutcat/jxls-plus.git</url>
+    </scm>
 
     <distributionManagement>
         <snapshotRepository>
