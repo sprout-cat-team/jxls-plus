@@ -85,7 +85,7 @@ public class JxlsPlusPoiTransformer extends PoiTransformer {
             destCell = destRow.createCell(targetCellRef.getCol());
         }
         try {
-            destCell.setCellType(CellType.BLANK);
+            destCell.setBlank();
             ((PoiCellData) cellData).writeToCell(destCell, context, this);
             copyMergedRegions(cellData, targetCellRef);
         } catch (Exception e) {
